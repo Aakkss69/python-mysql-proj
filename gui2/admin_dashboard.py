@@ -1,4 +1,8 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTreeWidget, QTreeWidgetItem, QPushButton, QDesktopWidget, QMessageBox, QTableWidget, QTableWidgetItem, QStackedWidget, QFormLayout, QLineEdit, QComboBox, QDialog
+from PyQt5.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTreeWidget, QTreeWidgetItem, QPushButton,
+    QDesktopWidget, QMessageBox, QTableWidget, QTableWidgetItem, QStackedWidget, QFormLayout,
+    QLineEdit, QComboBox, QDialog
+)
 from PyQt5.QtCore import Qt
 from database.user import UserManager
 from database.role import RoleManager
@@ -92,37 +96,38 @@ class AdminDashboard(QWidget):
 
     def initUI(self):
         # Main layout
-        main_layout = QHBoxLayout()
+        self.main_layout = QHBoxLayout()
 
         # Sidebar with buttons
-        sidebar_layout = QVBoxLayout()
+        self.sidebar_layout = QVBoxLayout()
 
         # View User Button
         self.view_user_button = QPushButton("View User")
         self.view_user_button.clicked.connect(self.open_user_select_dialog)
-        sidebar_layout.addWidget(self.view_user_button)
+        self.sidebar_layout.addWidget(self.view_user_button)
 
         # Manage Users Button
         self.manage_users_button = QPushButton("Manage Users")
         self.manage_users_button.clicked.connect(self.show_users)
-        sidebar_layout.addWidget(self.manage_users_button)
+        self.sidebar_layout.addWidget(self.manage_users_button)
 
         # Manage Roles Button
         self.manage_roles_button = QPushButton("Manage Roles")
         self.manage_roles_button.clicked.connect(self.manage_roles)
-        sidebar_layout.addWidget(self.manage_roles_button)
+        self.sidebar_layout.addWidget(self.manage_roles_button)
 
         # Logout Button
         self.logout_button = QPushButton("Logout")
         self.logout_button.clicked.connect(self.logout)
-        sidebar_layout.addWidget(self.logout_button)
+        self.sidebar_layout.addWidget(self.logout_button)
 
-        sidebar_layout.addStretch()
+        self.sidebar_layout.addStretch()
 
         # User Tree
         self.user_tree = QTreeWidget()
         self.user_tree.setHeaderLabels(["User", "Role"])
 
+        # Load users into the tree
         self.load_users()
 
         # Main content area
@@ -132,11 +137,11 @@ class AdminDashboard(QWidget):
         self.content_stack.addWidget(self.main_content)
 
         # Add to main layout
-        main_layout.addLayout(sidebar_layout, 1)
-        main_layout.addWidget(self.user_tree, 2)
-        main_layout.addWidget(self.content_stack, 4)
+        self.main_layout.addLayout(self.sidebar_layout, 1)
+        self.main_layout.addWidget(self.user_tree, 2)
+        self.main_layout.addWidget(self.content_stack, 4)
 
-        self.setLayout(main_layout)
+        self.setLayout(self.main_layout)
         self.centerAndResize()
 
     def reset_main_content(self):
@@ -145,6 +150,7 @@ class AdminDashboard(QWidget):
 
     def load_users(self):
         """Load users from the database and populate the tree widget."""
+        self.user_tree.clear()  # Clear the tree to ensure no stale data
         users = self.user_manager.get_users()
         for user in users:
             user_id, username, _, role_id = user
@@ -176,17 +182,42 @@ class AdminDashboard(QWidget):
 
     def show_user_details(self, user_id):
         """Show details of the selected user in the main content area."""
+        # Reload the user tree to ensure it has the latest data
+        self.load_users()
+
+        # Retrieve the updated user details
         user = next((u for u in self.user_manager.get_users() if u[0] == user_id), None)
+
         if user is not None:
             role_name = self.get_role_name(user[3])
+            # Create a new UserDetailWidget to reflect any updates
             detail_widget = UserDetailWidget(user_id, user[1], role_name, self)
             self.content_stack.addWidget(detail_widget)
             self.content_stack.setCurrentWidget(detail_widget)
         else:
             QMessageBox.warning(self, "View User", "The selected user does not exist.")
 
+    def refresh_all(self):
+        """Refresh all relevant UI components."""
+        self.load_users()  # Refresh the user tree
+        self.update_current_user_details()  # Update the user details in the middle content area
+
+    def update_current_user_details(self):
+        """Update the currently viewed user details if any."""
+        current_widget = self.content_stack.currentWidget()
+        if isinstance(current_widget, UserDetailWidget):
+            user_id = current_widget.user_id
+            self.show_user_details(user_id)
+
     def show_users(self):
-        """Show the user management interface in the main content area."""
+        """Refresh the content stack to show the user management interface and update the user tree."""
+        # Refresh the user tree with the latest data
+        self.load_users()
+
+        # Clear the current content in the stack
+        self.content_stack.setCurrentWidget(self.main_content)
+
+        # Create the user management widget
         user_management_widget = QWidget()
         user_management_layout = QVBoxLayout()
 
@@ -222,8 +253,20 @@ class AdminDashboard(QWidget):
         user_management_layout.addLayout(buttons_layout)
         user_management_widget.setLayout(user_management_layout)
 
+        # Replace the current widget in the content stack
         self.content_stack.addWidget(user_management_widget)
         self.content_stack.setCurrentWidget(user_management_widget)
+
+        # Call relevant functions to ensure everything is up-to-date
+        self.refresh_all()
+
+    def clear_layout(self, layout):
+        """Clear a layout and its child widgets."""
+        if layout is not None:
+            while layout.count():
+                child = layout.takeAt(0)
+                if child.widget() is not None:
+                    child.widget().deleteLater()
 
     def add_user(self):
         dialog = QDialog(self)
@@ -281,7 +324,7 @@ class AdminDashboard(QWidget):
                 self.user_manager.add_user(username, password, role_id)
                 QMessageBox.information(self, "Success", "User added successfully.")
                 dialog.close()
-                self.show_users()
+                self.show_users()  # Refresh the interface after adding a user
             except Exception as e:
                 QMessageBox.warning(self, "Error", f"Could not add user: {e}")
         else:
@@ -354,7 +397,7 @@ class AdminDashboard(QWidget):
                 self.user_manager.update_user(user_id, new_username=username, new_password=password if password else None, new_role_id=role_id)
                 QMessageBox.information(self, "Success", "User updated successfully.")
                 dialog.close()
-                self.show_users()
+                self.show_users()  # Refresh the interface after updating a user
             except Exception as e:
                 QMessageBox.warning(self, "Error", f"Could not update user: {e}")
         else:
@@ -423,8 +466,7 @@ class AdminDashboard(QWidget):
         try:
             self.user_manager.delete_user(user_id)
             QMessageBox.information(self, "Delete User", "User deleted successfully.")
-            self.reset_main_content()  # Go back to the main content area
-            self.show_users()
+            self.show_users()  # Refresh the interface after deleting a user
         except Exception as e:
             QMessageBox.warning(self, "Delete User", f"Error: {str(e)}")
 
@@ -459,6 +501,7 @@ class AdminDashboard(QWidget):
         role_management_layout.addLayout(buttons_layout)
         role_management_widget.setLayout(role_management_layout)
 
+        # Replace the current widget in the content stack
         self.content_stack.addWidget(role_management_widget)
         self.content_stack.setCurrentWidget(role_management_widget)
 
@@ -496,7 +539,7 @@ class AdminDashboard(QWidget):
             self.role_manager.add_role(role_name)
             QMessageBox.information(self, "Success", "Role added successfully.")
             dialog.close()
-            self.manage_roles()
+            self.manage_roles()  # Refresh the interface after adding a role
         except Exception as e:
             QMessageBox.warning(self, "Error", f"Could not add role: {e}")
 
@@ -520,7 +563,7 @@ class AdminDashboard(QWidget):
                     try:
                         self.role_manager.delete_role(role_id)
                         QMessageBox.information(self, "Success", "Role deleted successfully.")
-                        self.manage_roles()
+                        self.manage_roles()  # Refresh the interface after deleting a role
                     except Exception as e:
                         QMessageBox.warning(self, "Error", f"Could not delete role: {e}")
         else:
