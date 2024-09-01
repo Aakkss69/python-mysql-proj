@@ -85,8 +85,7 @@ class AdminDashboard(QWidget):
         user = next((u for u in self.user_manager.get_users() if u[0] == user_id), None)
         if user is not None:
             role_name = self.get_role_name(user[3])
-            tasks = [task for task in self.task_manager.get_tasks() if task[4] == user_id]
-            detail_dialog = UserDetailDialog(user_id, user[1], role_name, tasks, self)
+            detail_dialog = UserDetailDialog(user_id, user[1], role_name, self)
             detail_dialog.exec_()
         else:
             QMessageBox.warning(self, "View User", "The selected user does not exist.")

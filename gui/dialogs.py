@@ -1,9 +1,12 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QPushButton
 
+from gui.task_management import TaskManager  # Ensure this import is correct based on your project structure
+
 class UserDetailDialog(QDialog):
-    def __init__(self, user_id, username, role_name, tasks, parent=None):
+    def __init__(self, user_id, username, role_name, parent=None):
         super().__init__(parent)
         self.user_id = user_id
+        self.task_manager = TaskManager()  # Initialize task_manager here
         self.setWindowTitle(f"User Details - {username}")
         self.setGeometry(100, 100, 600, 400)
 
@@ -17,7 +20,7 @@ class UserDetailDialog(QDialog):
         self.task_table = QTableWidget()
         self.task_table.setColumnCount(3)
         self.task_table.setHorizontalHeaderLabels(["Task ID", "Title", "Description"])
-        self.refresh_task_table(tasks)
+        self.refresh_task_table()
         layout.addWidget(self.task_table)
 
         # Close Button
@@ -27,8 +30,9 @@ class UserDetailDialog(QDialog):
 
         self.setLayout(layout)
 
-    def refresh_task_table(self, tasks):
+    def refresh_task_table(self):
         """Refresh the task table with the latest data."""
+        tasks = self.task_manager.get_tasks()  # Fetch tasks directly from the task manager
         user_tasks = [task for task in tasks if task[4] == self.user_id]  # Filter tasks for the current user
         self.task_table.setRowCount(len(user_tasks))
         for row, task in enumerate(user_tasks):
