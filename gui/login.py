@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QMessageBox
 from database.user import UserManager
 from gui.admin_dashboard import AdminDashboard
+from gui.user_dashboard import UserDashboard
 
 class LoginWindow(QWidget):
     def __init__(self):
@@ -62,13 +63,11 @@ class LoginWindow(QWidget):
         self.admin_dashboard.show()
 
     def show_user_dashboard(self, user):
-        # Implement user dashboard functionality here
-        QMessageBox.information(self, "User Dashboard", "Redirecting to User Dashboard...")
         # Close the login window
         self.close()
         # Open the User Dashboard window (implement this next)
-        # user_dashboard = UserDashboard(user)
-        # user_dashboard.show()
+        self.user_dashboard = UserDashboard(user)
+        self.user_dashboard.show()
 
     def closeEvent(self, event):
         # Ensure the database connection is closed when the application exits

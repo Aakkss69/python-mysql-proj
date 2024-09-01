@@ -47,12 +47,23 @@ def main():
     admin_password = "admin_pass"  # Use a secure password in a real application
     role_id = 1  # Assuming 1 is the role ID for Admin
 
+    user_username="amitesh"
+    user_password="amitesh"
+    user_role_id=2
+
     # Check if the admin_user already exists to avoid duplicates
     if admin_username not in usernames:
         user_manager.add_user(admin_username, admin_password, role_id)
         print(f"Admin user '{admin_username}' added successfully.")
     else:
         print(f"Admin user '{admin_username}' already exists.")
+
+    # Check if amitesb already exists to avoid duplicates
+    if user_username not in usernames:
+        user_manager.add_user(user_username, user_password, user_role_id)
+        print(f"Amitesh user '{user_username}' added successfully.")
+    else:
+        print(f"Amitesh user '{user_username}' already exists.")
 
     # Add random tasks for each user
     task_titles = [
