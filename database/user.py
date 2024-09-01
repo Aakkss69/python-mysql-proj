@@ -2,26 +2,6 @@ import bcrypt
 from .connection import DatabaseConnection
 from .task import TaskManager  # Import TaskManager to manage task deletion
 
-class UserManager:
-    # Existing code...
-
-    def delete_user(self, user_id):
-        cursor = self.db.get_cursor()
-        task_manager = TaskManager()  # Initialize TaskManager to delete tasks
-        try:
-            # First, delete all tasks associated with this user
-            task_manager.delete_tasks_by_user(user_id)
-
-            # Now, delete the user
-            cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
-            self.db.connection.commit()
-            print(f"User ID {user_id} deleted successfully.")
-        except Exception as e:
-            print(f"Error deleting user ID {user_id}: {e}")
-        finally:
-            cursor.close()
-            task_manager.close_connection()
-
 
 class UserManager:
     def __init__(self):
@@ -57,6 +37,19 @@ class UserManager:
             return users
         except Exception as e:
             print(f"Error retrieving users: {e}")
+            return []
+        finally:
+            cursor.close()
+
+    def get_user_tasks(self, user_id):
+        """Retrieve tasks associated with a specific user."""
+        cursor = self.db.get_cursor()
+        try:
+            cursor.execute("SELECT * FROM tasks WHERE user_id = %s", (user_id,))
+            tasks = cursor.fetchall()
+            return tasks
+        except Exception as e:
+            print(f"Error retrieving tasks for user ID {user_id}: {e}")
             return []
         finally:
             cursor.close()
