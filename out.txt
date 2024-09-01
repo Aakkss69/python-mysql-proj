@@ -1,0 +1,29 @@
+Initializing database
+Python version: 3.12 - OK
+mysql.connector import - OK
+config import - OK
+Database connection successful!
+Database connection successful!
+Database connection successful!
+Database connection successful!
+Tables created successfully!
+User 'user3' added successfully.
+User 'user5' added successfully.
+Task 'Attend meeting' added successfully.
+Task 'Develop feature' added successfully.
+Task 'Develop feature' added successfully.
+Task 'Attend meeting' added successfully.
+Task 'Prepare presentation' added successfully.
+Task 'Update website' added successfully.
+Task 'Update website' added successfully.
+Task 'Analyze data' added successfully.
+Database connection successful!
+Authentication failed.
+Authentication successful for user: admin_user
+Database connection closed.
+Database connection successful!
+Database connection successful!
+Database connection successful!
+Database connection successful!
+Task ID 24 deleted successfully.
+Database connection closed.
